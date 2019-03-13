@@ -1,0 +1,2 @@
+# Indian-railways-train-running-simulation
+This project is made using LAMP environment along with SVG and used CodeIgniter as PHP framework. This project displays the running simulation of trains under Indian Railways. The simulation is for a particular section chosen eg. KANPUR-TUNDLA . The simulation is as per 24 hour clock whose clock period is as per choice made eg(1 min=1sec). This project aims at ease out the jobs of controllers in keeping watch on the movement of trains.  
