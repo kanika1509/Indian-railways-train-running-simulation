@@ -1,0 +1,297 @@
+<?php
+include "Parameter.php";
+include "SVGLib.php";
+
+ $arr=array();
+$arr["Kanpur"]="60 100";
+$arr1=array();
+$arr1[0]="Kanpur";
+$i=1;
+ $CountTrains=array();
+$count=0;
+$X1Axis=0;
+foreach($distances as $value){
+    $result1=$value->km;
+    $result2=$value->stationname;
+    $result2=trim($result2);
+    $arr1[$i]=$result2;
+    $i+=1;
+    $X2Axis=$X1Axis+$result1+110;
+    $arr[$result2]=$X1Axis." ".$X2Axis;
+    $X1Axis = $X2Axis;
+    }
+
+
+$CurrentHour = 0;
+$CurrentMinute = 11;
+
+
+$Out = "";
+$FinalSVG = "";
+
+
+$flag=2;
+$ArrayForMiddle=array();
+//$ArrayForMiddle['111111']=array(0,0,0,0);
+   for($i=0;$i<sizeof($ArrivalTime)-1;$i++){
+        $ArrivalMinute = (int)(substr((string)$ArrivalTime[$i]->arrivaltime,2,2));
+        $ArrivalHour = (int)(substr((string)$ArrivalTime[$i]->arrivaltime,0,2));
+       
+        $DepartureMinute = (int)(substr((string)$ArrivalTime[$i]->departuretime,2,2));
+        $DepartureHour = (int)(substr((string)$ArrivalTime[$i]->departuretime,0,2));
+        
+        $NextArrivalMinute = (int)(substr((string)$ArrivalTime[$i+1]->arrivaltime,2,2));
+        $NextArrivalHour = (int)(substr((string)$ArrivalTime[$i+1]->arrivaltime,0,2));
+       
+       $TrainNumber = $ArrivalTime[$i]->train;
+       
+       
+       //echo $ArrivalTime[$i+1]->arrivaltime." ".$ArrivalTime[$i]->arrivaltime." "; 
+       if($ArrivalHour==$NextArrivalHour){
+           $diff=$NextArrivalMinute - $ArrivalMinute;
+          // echo $diff." ";
+       }
+       else{
+          
+           $diff=(int)$ArrivalTime[$i+1]->arrivaltime - (int)$ArrivalTime[$i]->arrivaltime-40;
+           //echo $diff." ";   
+       }
+       
+       foreach($ArrayForMiddle as $ke=>$val){
+           if($ke==(int)$TrainNumber){
+               unset($ArrayForMiddle[$key]);
+               $ArrayForMiddle=array_values($ArrayForMiddle);
+           }
+       }
+       
+        $TimeDiff=0;
+        while($TimeDiff!=$diff){
+          
+            if($CurrentMinute>59){
+                $CurrentHour+=1;
+                $CurrentMinute=0;
+            }
+            
+            //echo $CurrentHour." ".$CurrentMinute;
+         $First=1;
+        echo "<script type='text/javascript'>",
+        "deletesvg();deletecircle();",
+        "</script>";
+   $Out.="<html>
+   
+   <head>
+   <style>
+#component .tooltip {visibility: hidden}
+#component:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+.tooltip text {
+    fill: black;
+    font-size: 32px;
+    font-family: sans-serif;
+}
+
+
+</style>
+</head>
+   
+   <script>
+   
+   function deletecircle(){
+   
+   var circle = document.getElementById('circle');
+   var parent = circle.parentNode;
+   parent.removeChild(circle);
+   }
+   
+   
+   
+   function deletesvg(){
+   var svg = document.getElementById('svg');
+   document.body.removeChild(svg);
+   }
+   </script>
+   <body style='background-color:#BFEFFF;'>
+        <svg id='svg' style='width:1350;height:500' viewbox='-50 -50 3050 250'>";
+    if($First==1){
+        $FinalSVG = DrawSVGLine($distances);
+        $Out.=$FinalSVG;
+        $First = 0;
+    }
+            
+            if($DepartureMinute>$CurrentMinute){
+            
+                $currentstation = $ArrivalTime[$i]->stationname;
+                //$nextstation=$trainbynamme[$i+1]->stationname;
+                $train=$ArrivalTime[$i]->train;
+                    for($k=0;$k<sizeof($Direction);$k++){
+                        if($train==$Direction[$k]->train){
+                            $StartStation = trim($Direction[$k]->stationname);
+                            break;
+                        }
+                    }
+                $temparr = explode(" ",$arr[$currentstation]);
+                $XOneAxis = (int)$temparr[0];
+                $XNextAxis = (int)$temparr[1];
+                //echo $XOneAxis;
+                $XOneAxis+=85;
+                $XTwoAxis=$XOneAxis+30;
+                $TextCoordinate = $XTwoAxis+70;
+                    if(strcmp($StartStation,"Govindpuri (GOY)")==0){
+                $Out.="<line id='circle' X1=".$XOneAxis." Y1='100' X2=".$XTwoAxis." Y2='100' Stroke='yellow' Stroke-width='5'></line>";
+                $Out.="<g id='component'><circle id='circle' cx=".$XTwoAxis." cy=100 r=14 fill='red'></circle>
+                <g class='tooltip' opacity='0.9>
+            <rect x=".$XTwoAxis." y='70' rx='5' width='100' height='25' style='fill:#555;stroke: blue;'></rect>
+            <text x=".$TextCoordinate." y='82'>".$train."</text> 
+                </g>
+                </g>";
+                    }
+                    else{
+                         $Out.="<line id='circle' X1=".$XOneAxis." Y1='150' X2=".$XTwoAxis." Y2='150' Stroke='yellow' Stroke-width='5'></line>";
+                $Out.="<g id='component'><circle id='circle' cx=".$XOneAxis." cy='150' r=14 fill='red'></circle>
+                <g class='tooltip' opacity='0.9>
+            <rect x=".$XTwoAxis." y='160' rx='5' width='100' height='25' style='fill:#555;stroke: blue;'></rect>
+            <text x=".$TextCoordinate." y='172'>".$train."</text> 
+                </g>
+                </g>";
+                    }
+            
+            }
+            
+            for($j=0;$j<sizeof($trainbyname)-1;$j++){
+               $DepartureMinutes = (int)(substr((string)$trainbyname[$j]->departuretime,2,2));
+                $DepartureHours = (int)(substr((string)$trainbyname[$j]->departuretime,0,2));
+                
+                if($CurrentHour==$DepartureHours && $CurrentMinute==$DepartureMinutes){
+                    $currentstation = $trainbyname[$j]->stationname;
+                    
+                    $train=$trainbyname[$j]->train;
+                    for($k=0;$k<sizeof($Direction);$k++){
+                        if($train==$Direction[$k]->train){
+                            $StartStation = trim($Direction[$k]->stationname);
+                            break;
+                        }
+                    }
+                
+                    $temparr = explode(" ",$arr[$currentstation]);
+                    $XOneAxis = (int)$temparr[0];
+                    $XNextAxis = (int)$temparr[1];
+
+                    $Index=array_search($currentstation,$arr1);
+                    $temparrprev = explode(" ",$arr[$arr1[$Index-1]]);
+                    $XPrevAxis = (int)$temparrprev[0];
+                    
+                    $ArrayForMiddle[$train] = array($XOneAxis,$XNextAxis,$StartStation,1,$XPrevAxis);
+                    $XOneAxis+=85;
+                    $XNextAxis+=85;
+                    $XPrevAxis+=85;
+                
+                $XTwoAxis=$XOneAxis+30;
+                $TextCoordinate = $XTwoAxis+70;
+                    
+                    if(strcmp($StartStation,"Govindpuri (GOY)")==0 && strcmp($currentstation,"TUNDLA JN.")!=0){
+                $Out.="<line id='circle' X1=".$XOneAxis." Y1='100' X2=".$XTwoAxis." Y2='100' Stroke='yellow' Stroke-width='5'></line>";
+                $Out.="<g id='component'><circle id='circle' cx=".$XTwoAxis." cy=100 r=14 fill='green'></circle>
+                <g class='tooltip' opacity='0.9>
+            <rect x=".$XTwoAxis." y='70' rx='5' width='100' height='25' style='fill:#555;stroke: blue;'></rect>
+            <text x=".$TextCoordinate." y='82'>".$train."</text> 
+                </g>
+                </g>";
+                    }
+                    
+                    else{
+                        if(strcmp($StartStation,"TUNDLA JN.")==0 && strcmp($currentstation,"Govindpuri (GOY)")!=0){
+                         $Out.="<line id='circle' X1=".$XTwoAxis." Y1='150' X2=".$XOneAxis." Y2='150' Stroke='yellow' Stroke-width='5'></line>";
+                $Out.="<g id='component'><circle id='circle' cx=".$XOneAxis." cy=150 r=14 fill='green'></circle>
+                <g class='tooltip' opacity='0.9>
+            <rect x=".$XTwoAxis." y='160' rx='5' width='100' height='25' style='fill:#555;stroke: blue;'></rect>
+            <text x=".$TextCoordinate." y='172'>".$train."</text> 
+                </g>
+                </g>";
+                    }
+                  else
+		{
+		    if(strcmp($currentstation,"Govindpuri (GOY)")==0)
+			{	                $Out.="<line id='circle' X1=".$XTwoAxis." Y1='150' X2=".$XOneAxis." Y2='150' Stroke='yellow' Stroke-width='5'></line>";
+                $Out.="<g id='component'><circle id='circle' cx=".$XOneAxis." cy=150 r=14 fill='green'></circle>
+                <g class='tooltip' opacity='0.9>
+            <rect x=".$XTwoAxis." y='160' rx='5' width='100' height='25' style='fill:#555;stroke: blue;'></rect>
+            <text x=".$TextCoordinate." y='172'>".$train."</text> 
+                </g>
+                </g>";
+                }
+
+                         
+                    }}
+                
+                }
+            }   
+            
+            foreach($ArrayForMiddle as $key=>$value){
+               
+                if($value[3]==0){
+                $DrawXOneAxis=$value[0]+105;
+                //$DrawXOneAxis+=85;
+                $DrawXNextAxis=$value[1]+105;
+                $DrawXPrevAxis=$value[4]+105;
+	         $Change=100;
+		$Change2=150;
+                    if(strcmp($value[2],"Govindpuri (GOY)")==0){
+                $XMiddleAxis=($DrawXOneAxis+$DrawXNextAxis)/2;
+                //$XOneAxis+=85;
+                $XMiddleTwoAxis=$XMiddleAxis+15;
+                $XMiddleOneAxis=$XMiddleAxis-15;
+                $CountTrains[$XMiddleAxis]=count;
+                $TextCoordinate = $XMiddleTwoAxis+70;
+                $Change-=$CountTrains[$XMiddleAxis];        
+                $Out.="<line id='circle' X1=".$XMiddleOneAxis." Y1=".$Change." X2=".$XMiddleTwoAxis." Y2=".$Change." Stroke='yellow' Stroke-width='5'></line>";
+                $Out.="<g id='component'><circle id='circle' cx=".$XMiddleTwoAxis." cy=100 r=14 fill='green'></circle>
+                <g class='tooltip' opacity='0.9>
+            <rect x=".$XMiddleTwoAxis." y='70' rx='5' width='100' height='25' style='fill:#555;stroke: blue;'></rect>
+            <text x=".$TextCoordinate." y='82'>".$key."</text> 
+                </g>
+                </g>";
+                $count+=10;   
+		 }
+                    else{
+                        
+                $XMiddleAxis=($DrawXOneAxis+$DrawXPrevAxis)/2;
+                           
+                $XMiddleOneAxis=$XMiddleAxis-15;
+                $XMiddleTwoAxis=$XMiddleAxis+15;
+                $TextCoordinate = $XMiddleTwoAxis+70;
+                        
+                        
+                         $Out.="<line id='circle' X1=".$XMiddleOneAxis." Y1=".$Change2." X2=".$XMiddleTwoAxis." Y2=".$Change2." Stroke='yellow' Stroke-width='5'></line>";
+                $Out.="<g id='component'><circle id='circle' cx=".$XMiddleOneAxis." cy=150 r=14 fill='green'></circle>
+                <g class='tooltip' opacity='0.9>
+            <rect x=".$XMiddleTwoAxis." y='160' rx='5' width='100' height='25' style='fill:#555;stroke: blue;'></rect>
+            <text x=".$TextCoordinate." y='172'>".$key."</text> 
+                </g>
+                </g>";      
+		  }
+            }
+            }
+           
+            foreach($ArrayForMiddle as $key=>$value){
+                $ArrayForMiddle[$key][3]=0;
+            }
+           $Out.="<text x='50' y='300' style='font-size:35px;'>Current Hour: ".$CurrentHour."</text>";
+             
+           $Out.="<text x='50' y='350' style='font-size:35px;'>Current Minute: ".$CurrentMinute."</text>";
+            
+            
+            $CurrentMinute++;  
+            $TimeDiff++;
+             $Out.="</svg></body></html>";
+       echo $Out;
+       $Out="";
+    
+       ob_flush();
+    flush();
+    sleep(2);
+        }
+    }
+?>
+
